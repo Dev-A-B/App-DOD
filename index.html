@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Do or Die | DOD</title>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d0d0f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Teko:wght@300..700&display=swap" rel="stylesheet">
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, update, onValue, get, child, push, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyByLeOnstoCGQ9vew1NYXtBe2E_xyUVgDg",
+            authDomain: "do-or-die-33610.firebaseapp.com",
+            databaseURL: "https://do-or-die-33610-default-rtdb.firebaseio.com",
+            projectId: "do-or-die-33610",
+            storageBucket: "do-or-die-33610.firebasestorage.app",
+            messagingSenderId: "816098304473",
+            appId: "1:816098304473:web:4e48a2004ccbe70db0b9c8",
+            measurementId: "G-V9K09W36L9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        window.firebaseDb = getDatabase(app);
+        window.firebaseAuth = getAuth(app);
+        window.firebaseRTDB = { ref, set, update, onValue, get, child, push, remove };
+
+        const authReady = new Promise((resolve) => {
+            onAuthStateChanged(window.firebaseAuth, (user) => {
+                if (user) resolve(user);
+                else signInAnonymously(window.firebaseAuth).catch(console.error);
+            });
+        });
+        window.firebaseAuthReady = authReady;
+
+        // Use a persistent flag, not just an event, so that no matter which
+        // script runs first (this module vs. the body script below), the
+        // app always starts. Dispatching an event with zero listeners
+        // silently does nothing — that race was the actual bug causing a
+        // blank screen on GitHub Pages.
+        window.firebaseIsReady = true;
+        window.dispatchEvent(new Event("firebase-ready"));
+    </script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bg: '#0d0d0f',
+                        surface: '#161618',
+                        'surface-light': '#1e1e22',
+                        primary: '#22c55e',
+                        secondary: '#f97316',
+                        'accent-purple': '#a855f7',
+                        'text-primary': '#f0f0f2',
+                        'text-secondary': '#8a8a96',
+                        border: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Teko', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'neon-green': '0 0 24px rgba(34, 197, 94, 0.25)',
+                        'neon-orange': '0 0 24px rgba(249, 115, 22, 0.25)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #0d0d0f; color: #f0f0f2; -webkit-tap-highlight-color: transparent; touch-action: manipulation; font-family: 'Inter', sans-serif; }
+        input, select, button, textarea { outline: none; font-family: inherit; }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+        ::-webkit-scrollbar { width: 0; height: 0; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script>
+        // Mount the app once Firebase is ready. Check the flag FIRST in case
+        // the module script above already finished (and dispatched its event
+        // into a void with no listener yet) — only fall back to listening for
+        // the event if Firebase hasn't finished initializing yet.
+        //
+        // IMPORTANT: we fetch + Babel.transform + eval each file manually,
+        // rather than appending <script type="text/babel"> tags dynamically.
+        // Babel Standalone's automatic <script type="text/babel"> handling
+        // only reliably scans scripts present at initial page parse time;
+        // scripts injected later via appendChild are not guaranteed to be
+        // picked up, which silently breaks the whole load chain with zero
+        // console error. Explicit transform+eval has no such ambiguity.
+        function startApp() {
+            const scripts = [
+                'src/constants.js',
+                'src/utils.js',
+                'src/firebase-helpers.js',
+                'src/components/Clock.js',
+                'src/components/Header.js',
+                'src/components/Footer.js',
+                'src/components/SetEditors.js',
+                'src/components/ExerciseCard.js',
+                'src/components/AddExerciseModal.js',
+                'src/components/CopyFromOtherUser.js',
+                'src/components/UserDashboard.js',
+                'src/components/HistoryView.js',
+                'src/components/ProfileView.js',
+                'src/components/PRView.js',
+                'src/components/SplitsView.js',
+                'src/components/SplitEditor.js',
+                'src/App.js'
+            ];
+
+            function loadNext(i) {
+                if (i >= scripts.length) return;
+                fetch(scripts[i])
+                    .then((res) => {
+                        if (!res.ok) throw new Error('HTTP ' + res.status + ' fetching ' + scripts[i]);
+                        return res.text();
+                    })
+                    .then((rawCode) => {
+                        const transformed = Babel.transform(rawCode, {
+                            presets: [['react', { runtime: 'classic' }], 'env'],
+                            filename: scripts[i]
+                        }).code;
+                        (0, eval)(transformed);
+                        loadNext(i + 1);
+                    })
+                    .catch((err) => {
+                        console.error('Failed to load/run', scripts[i], err);
+                        document.getElementById('root').innerHTML =
+                            '<div style="color:#f0f0f2;padding:20px;font-family:sans-serif;">' +
+                            '<h2 style="color:#f97316;">App failed to load</h2>' +
+                            '<p>Error in: ' + scripts[i] + '</p>' +
+                            '<pre style="white-space:pre-wrap;color:#8a8a96;">' + (err && err.message ? err.message : err) + '</pre>' +
+                            '</div>';
+                    });
+            }
+            loadNext(0);
+        }
+
+        if (window.firebaseIsReady) {
+            startApp();
+        } else {
+            window.addEventListener('firebase-ready', startApp, { once: true });
+        }
+
+        window.addEventListener('load', () => {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js').catch(console.error);
+            }
+        });
+    </script>
+</body>
+</html>
