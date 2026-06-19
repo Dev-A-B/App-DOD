@@ -51,8 +51,16 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
     const url = new URL(event.request.url);
 
-    // Never cache Firebase or any cross-origin API/data traffic — always network.
-    if (url.origin !== self.location.origin) {
+    // Only ever cache same-origin, GET, http(s) requests. The Cache API
+    // throws on POST requests and on non-http(s) schemes (e.g. requests
+    // injected by browser extensions show up as chrome-extension://),
+    // and Firebase's own traffic is cross-origin anyway — none of that
+    // should be touched here.
+    if (
+        url.origin !== self.location.origin ||
+        event.request.method !== "GET" ||
+        !url.protocol.startsWith("http")
+    ) {
         return;
     }
 
