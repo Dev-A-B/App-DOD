@@ -11,6 +11,29 @@ function ProfileView({ onBack, profiles }) {
         if (selected) fetchAllDays().then(setAllDays);
     }, [selected]);
 
+    // IMPORTANT: hooks must run unconditionally on every render, in the same
+    // order, regardless of `selected`. The previous version put this
+    // useMemo AFTER an early `return` for the !selected case, which violates
+    // React's Rules of Hooks the moment a user is picked (hook count changes
+    // between renders) — React throws and unmounts the whole tree, which is
+    // what caused the black screen when tapping a user.
+    const stats = React.useMemo(() => {
+        if (!selected || !allDays) return null;
+        let daysTrained = 0, totalSets = 0, totalExercises = 0;
+        const bodyWeights = [];
+        Object.keys(allDays).sort().forEach(d => {
+            const ud = allDays[d]?.[selected];
+            if (!ud) return;
+            const exCount = Object.keys(ud.exercises || {}).length;
+            if (exCount > 0) daysTrained++;
+            totalExercises += exCount;
+            Object.values(ud.exercises || {}).forEach(ex => { totalSets += Object.keys(ex.sets || {}).length; });
+            if (ud.bodyWeight) bodyWeights.push({ date: d, weight: parseFloat(ud.bodyWeight) });
+        });
+        const latestBW = bodyWeights.length ? bodyWeights[bodyWeights.length - 1] : null;
+        return { daysTrained, totalSets, totalExercises, latestBW };
+    }, [allDays, selected]);
+
     if (!selected) {
         return (
             <div className="flex flex-col h-full">
@@ -43,23 +66,6 @@ function ProfileView({ onBack, profiles }) {
 
     const profile = profiles[selected] || {};
     const style = USER_STYLE[selected];
-
-    const stats = React.useMemo(() => {
-        if (!allDays) return null;
-        let daysTrained = 0, totalSets = 0, totalExercises = 0;
-        const bodyWeights = [];
-        Object.keys(allDays).sort().forEach(d => {
-            const ud = allDays[d]?.[selected];
-            if (!ud) return;
-            const exCount = Object.keys(ud.exercises || {}).length;
-            if (exCount > 0) daysTrained++;
-            totalExercises += exCount;
-            Object.values(ud.exercises || {}).forEach(ex => { totalSets += Object.keys(ex.sets || {}).length; });
-            if (ud.bodyWeight) bodyWeights.push({ date: d, weight: parseFloat(ud.bodyWeight) });
-        });
-        const latestBW = bodyWeights.length ? bodyWeights[bodyWeights.length - 1] : null;
-        return { daysTrained, totalSets, totalExercises, latestBW };
-    }, [allDays, selected]);
 
     return (
         <div className="flex flex-col h-full">

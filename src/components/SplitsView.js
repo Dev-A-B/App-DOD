@@ -107,6 +107,9 @@ function SplitDetail({ split, onBack, profiles, onAddDayToToday, onAddExerciseTo
 
 function SplitPlanTab({ split, onAddDayToToday, onAddExerciseToToday, profiles }) {
     const [pickingUserFor, setPickingUserFor] = React.useState(null); // {type: 'day'|'exercise', day, exercise}
+    const days = split.days || [];
+    const [activeDayIdx, setActiveDayIdx] = React.useState(0);
+    const activeDay = days[activeDayIdx];
 
     function confirmAdd(userKey) {
         if (pickingUserFor.type === "day") {
@@ -118,38 +121,62 @@ function SplitPlanTab({ split, onAddDayToToday, onAddExerciseToToday, profiles }
     }
 
     return (
-        <div className="p-3 flex flex-col gap-4">
-            {(split.days || []).map(day => (
-                <div key={day.id} className="bg-surface border border-border rounded-xl overflow-hidden">
-                    <div className="flex items-center justify-between px-3 py-2.5" style={{ borderLeft: `4px solid ${day.color || "#555"}` }}>
-                        <div>
-                            <div className="font-display text-base">{day.label} {day.emoji}</div>
-                            <div className="text-xs text-text-secondary">{day.focus}</div>
-                        </div>
-                    </div>
-                    {!day.rest && (day.exercises || []).length > 0 && (
-                        <div className="flex flex-col">
-                            {day.exercises.map((ex, i) => (
-                                <div key={i} className="flex items-center justify-between px-3 py-2 border-t border-border/60">
-                                    <div className="min-w-0">
-                                        <div className="text-sm flex items-center gap-1.5">
-                                            <i className={`ph ${SET_TYPE_META[ex.setType || "standard"].icon} text-primary text-xs`}></i>
-                                            {ex.name}
-                                        </div>
-                                        <div className="text-[11px] text-text-secondary">{ex.sets} sets x {ex.reps} {ex.notes ? `— ${ex.notes}` : ""}</div>
-                                    </div>
-                                    <button onClick={() => setPickingUserFor({ type: "exercise", exercise: ex })} className="text-[11px] text-primary font-semibold shrink-0 ml-2">+ Today</button>
-                                </div>
-                            ))}
-                            <div className="px-3 py-2 border-t border-border/60">
-                                <button onClick={() => setPickingUserFor({ type: "day", day })} className="w-full text-xs bg-primary/10 text-primary rounded-lg py-2 font-semibold">
-                                    Add this full day to today
-                                </button>
+        <div className="flex flex-col h-full">
+            {/* Horizontal scrollable day-tab strip — drag/swipe to reveal more days,
+                tap one to show only that day below. Does not wrap or grid; each
+                pill keeps its natural width so dragging feels like the original. */}
+            <div className="flex gap-2 px-3 py-2.5 overflow-x-auto border-b border-border" style={{ WebkitOverflowScrolling: "touch" }}>
+                {days.map((day, idx) => {
+                    const isActive = idx === activeDayIdx;
+                    return (
+                        <button
+                            key={day.id}
+                            onClick={() => setActiveDayIdx(idx)}
+                            className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium whitespace-nowrap transition-colors ${isActive ? "bg-primary text-bg border-primary" : "border-border text-text-secondary"}`}
+                        >
+                            <span>{day.emoji}</span>
+                            <span>{day.rest ? "Rest" : day.label}</span>
+                        </button>
+                    );
+                })}
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-3">
+                {activeDay && (
+                    <div className="bg-surface border border-border rounded-xl overflow-hidden">
+                        <div className="flex items-center justify-between px-3 py-2.5" style={{ borderLeft: `4px solid ${activeDay.color || "#555"}` }}>
+                            <div>
+                                <div className="font-display text-base">{activeDay.label} {activeDay.emoji}</div>
+                                <div className="text-xs text-text-secondary">{activeDay.focus}</div>
                             </div>
                         </div>
-                    )}
-                </div>
-            ))}
+                        {!activeDay.rest && (activeDay.exercises || []).length > 0 && (
+                            <div className="flex flex-col">
+                                {activeDay.exercises.map((ex, i) => (
+                                    <div key={i} className="flex items-center justify-between px-3 py-2 border-t border-border/60">
+                                        <div className="min-w-0">
+                                            <div className="text-sm flex items-center gap-1.5">
+                                                <i className={`ph ${SET_TYPE_META[ex.setType || "standard"].icon} text-primary text-xs`}></i>
+                                                {ex.name}
+                                            </div>
+                                            <div className="text-[11px] text-text-secondary">{ex.sets} sets x {ex.reps} {ex.notes ? `— ${ex.notes}` : ""}</div>
+                                        </div>
+                                        <button onClick={() => setPickingUserFor({ type: "exercise", exercise: ex })} className="text-[11px] text-primary font-semibold shrink-0 ml-2">+ Today</button>
+                                    </div>
+                                ))}
+                                <div className="px-3 py-2 border-t border-border/60">
+                                    <button onClick={() => setPickingUserFor({ type: "day", day: activeDay })} className="w-full text-xs bg-primary/10 text-primary rounded-lg py-2 font-semibold">
+                                        Add this full day to today
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        {activeDay.rest && (
+                            <div className="px-3 py-6 text-center text-text-secondary text-sm">Rest day — nothing to add.</div>
+                        )}
+                    </div>
+                )}
+            </div>
 
             {pickingUserFor && (
                 <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setPickingUserFor(null)}>

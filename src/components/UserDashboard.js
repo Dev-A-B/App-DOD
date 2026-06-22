@@ -89,6 +89,17 @@ function UserDashboard({ userKey, dateKey, profiles, splits }) {
                 />
             </div>
 
+            <SplitSelector
+                userKey={userKey}
+                otherUserKey={otherUserKey}
+                dateKey={dateKey}
+                splits={splits}
+                currentSplitId={dayData.splitId}
+                currentSplitDayId={dayData.splitDayId}
+                otherSplitId={otherDayData.splitId}
+                otherSplitDayId={otherDayData.splitDayId}
+            />
+
             <CopyFromOtherUserBanner
                 otherUserExercises={otherDayData.exercises}
                 currentUserExercises={dayData.exercises}
