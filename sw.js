@@ -18,6 +18,7 @@ const SHELL_FILES = [
     "./src/components/ExerciseCard.js",
     "./src/components/AddExerciseModal.js",
     "./src/components/CopyFromOtherUser.js",
+    "./src/components/SplitSelector.js",
     "./src/components/UserDashboard.js",
     "./src/components/HistoryView.js",
     "./src/components/ProfileView.js",
